@@ -1,0 +1,52 @@
+node {
+  def app
+  def workspacce = env.WORKSPACE
+  def version
+  def app_name = "node-api-prisma-boilerplate"
+  def image_name = "${app_name}"
+  def image = "starbem/${image_name}"
+  def git_url = "node-api-prisma-boilerplate.git"
+  def credential = "jenkins"
+
+  node('production-starbem') {
+    stage('Clone Project') {
+      git branch: 'main',
+      credentialsId: credential,
+      url: "git@github.com:StarBem/${git_url}"
+    }
+
+    stage('Build Image') {
+      app = docker.build("${image}")
+    }
+
+    stage('Tagging') {
+      try {
+         withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]){
+            sh("git config --global user.email 'tecnologia@starbem.app'")
+            sh("git config --global user.name 'Jenkins'")
+            sh("git config credential.username ${env.GIT_USERNAME}")
+            sh("git config credential.helper '!f() { echo password=\$GIT_PASSWORD; }; f'")
+            sh('/opt/tools/create-tag')
+
+            version = sh (script: "stepup version | sed -e 's/v//g'", returnStdout: true).trim()
+            echo "next-release: [${version}]"
+         }
+      } finally {
+        sh("git config --unset credential.username")
+        sh("git config --unset credential.helper")
+      }
+    }
+
+    stage('Promote to Production') {
+      docker.withRegistry('', 'docker-registry') {
+        app.push("${version_staging}")
+      }
+    }
+
+    stage('Deploy to Production') {
+      withEnv(["VERSION=${version_staging}", "IMAGE=${image}"]) {
+        sh "bash deploy.sh ${app_name}"
+      }
+    }
+  }
+}

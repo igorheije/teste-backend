@@ -1,0 +1,25 @@
+version: '3'
+services:
+  api:
+    image: ${IMAGE}:${VERSION}
+    env_file:
+      - /opt/env/.env
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/app/
+      - /app/node_modules
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: '8G'
+          cpus: '1'
+      update_config:
+        parallelism: 1
+        delay: '10s'
+        failure_action: continue
+networks:
+  microservices_nw:
+    driver: bridge
