@@ -9,7 +9,7 @@ export default {
   port: process.env.PORT,
   env: process.env.NODE_ENV,
   database: {
-    url: process.env.DATABASE_URL,
+    url: `postgresql://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.PORT}/${process.env.DATABASE}?schema=public`,
   },
   basicAuth: {
     username: process.env.BASIC_AUTH_USERNAME,
