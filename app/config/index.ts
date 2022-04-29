@@ -5,7 +5,7 @@ dotenv.config({
 })
 
 export default {
-  secret: process.env.SECRET || '2b06b949-68f2-4147',
+  secret: process.env.SECRET_KEY || '2b06b949-68f2-4147',
   port: process.env.PORT,
   env: process.env.NODE_ENV,
   database: {

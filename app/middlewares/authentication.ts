@@ -2,7 +2,6 @@ import { Request, Response, Next } from 'restify'
 import * as errors from 'restify-errors'
 import jwt from 'jsonwebtoken'
 import config from '@/app/config'
-import { base64Decoding } from '@/app/utils/base64'
 
 type TokenDecodedTypes = {
   id?: string
@@ -19,11 +18,10 @@ export const decodeToken = (token: string): TokenDecodedTypes | null => {
     if (err) return null
     data = decoded
   })
-
   return data
 }
 
-const verifyJwt = (authorization: string) => {
+const verifyJWT = (authorization: string) => {
   if (!authorization)
     return {
       errors: new errors.NotAuthorizedError('Token não informado'),
@@ -57,51 +55,48 @@ const verifyJwt = (authorization: string) => {
   }
 }
 
+export const verifyInternalAuth = async (
+  req: Request,
+  res: Response,
+  next: Next
+) => {
+  const { authentication }: any = req.headers
+
+  if (!authentication) {
+    return next(new errors.NotAuthorizedError('Token não informado'))
+  }
+
+  if (authentication !== process.env.AUTHENTICATION) {
+    return next(new errors.ForbiddenError('Chave de autenticação não é valida'))
+  }
+
+  return next()
+}
+
 export const verifyAuthentication = async (
   req: Request,
   res: Response,
   next: Next
 ) => {
-  const { authorization } = req.headers
+  const { authorization }: any = req.headers
 
   if (!authorization) {
     return next(new errors.NotAuthorizedError('Token não informado'))
   }
 
   const parts = authorization.split(' ')
-  const [scheme, token] = parts
+  const [scheme] = parts
 
-  if (scheme && !/^Basic$/i.test(scheme) && !/^Bearer$/i.test(scheme)) {
-    return next(new errors.ForbiddenError(`Token não é do tipo ${scheme}`))
+  if (!/^Bearer$/i.test(scheme)) {
+    return {
+      errors: new errors.ForbiddenError(`Token não é do tipo ${scheme}`),
+    }
   }
 
-  if (scheme === 'Basic') {
-    const decode = base64Decoding(token).split(':')
-    const [username, password] = decode
+  const verify = verifyJWT(authorization)
 
-    if (
-      username !== config.basicAuth.username &&
-      password !== config.basicAuth.password
-    ) {
-      return next(new errors.ForbiddenError('Usuário não autorizado'))
-    }
-  } else {
-    const verify = verifyJwt(authorization)
-    const decodedToken: any = decodeToken(authorization)
-
-    if (decodedToken && decodedToken.type) {
-      if (!req.url?.includes(decodedToken.type)) {
-        return next(
-          new errors.ForbiddenError(
-            'Você não tem autorização para acessar esse método'
-          )
-        )
-      }
-    }
-
-    if (!verify.status) {
-      return next(verify.errors)
-    }
+  if (!verify.status) {
+    return next(verify.errors)
   }
 
   return next()

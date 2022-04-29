@@ -38,7 +38,6 @@ export const signin = async (req: Request, res: Response, next: Next) => {
 export const getMe = async (req: Request, res: Response, next: Next) => {
   const { authorization }: any = req.headers
   const userId: any = decodeToken(authorization)
-  console.info(userId)
 
   try {
     const response = await accountsServices.getMe(userId.id)

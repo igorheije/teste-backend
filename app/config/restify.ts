@@ -3,6 +3,8 @@ import cors from 'cors'
 
 // Routes
 import accountsRoutes from '@/app/api/v1/Accounts/Accounts.routes'
+import housesRoutes from '@/app/api/v1/Houses/Houses.routes'
+import bookingsRoutes from '@/app/api/v1/Bookings/Bookings.routes'
 
 export default (): Server => {
   const app = restify.createServer({
@@ -17,6 +19,8 @@ export default (): Server => {
 
   // Routes
   accountsRoutes(app)
+  bookingsRoutes(app)
+  housesRoutes(app)
 
   return app
 }
