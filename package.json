@@ -6,7 +6,7 @@
   "scripts": {
     "build": "NODE_OPTIONS=--max_old_space_size=4096 && tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./ -o ./dist",
     "start:dev": "ts-node-dev -r tsconfig-paths/register --exit-child --respawn --ignore-watch node_modules --no-notify app/index.ts ",
-    "start:prod": "node -r tsconfig-paths/register ./dist/app/index.js",
+    "start:prod": "node  ./dist/app/index.js",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "stepup": "stepup notes add"
