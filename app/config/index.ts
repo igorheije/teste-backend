@@ -9,7 +9,7 @@ export default {
   port: process.env.PORT,
   env: process.env.NODE_ENV,
   database: {
-    url: process.env.DATABASE_URL,
+    url: process.env.HEROKU_POSTGRESQL_GOLD_URL,
   },
   basicAuth: {
     username: process.env.BASIC_AUTH_USERNAME,
